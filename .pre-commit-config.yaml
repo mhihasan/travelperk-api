@@ -18,3 +18,5 @@ repos:
     -   id: mypy
         entry: mypy
         verbose: true
+        additional_dependencies:
+            - 'sqlalchemy'

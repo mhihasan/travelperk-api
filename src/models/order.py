@@ -2,7 +2,7 @@ import enum
 
 import sqlalchemy as sa
 
-from src.db.init_db import metadata
+from src.db.base import Base
 
 
 class OrderStatus(enum.Enum):
@@ -12,15 +12,14 @@ class OrderStatus(enum.Enum):
     failed = "failed"
 
 
-order_table = sa.Table(
-    "order",
-    metadata,
-    sa.Column("id", sa.String, primary_key=True),
-    sa.Column("user_id", sa.String, nullable=False),
-    sa.Column("product_code", sa.String, nullable=False),
-    sa.Column("customer_fullname", sa.String, nullable=True),
-    sa.Column("product_name", sa.String, nullable=True),
-    sa.Column("total_amount", sa.Float, default=0),
-    sa.Column("created_at", sa.DateTime, default=sa.func.now()),
-    sa.Column("status", sa.String, default=OrderStatus.initiated.value),
-)
+class Order(Base):
+    __tablename__ = "order"
+
+    id = sa.Column(sa.String, primary_key=True)
+    user_id = sa.Column(sa.String, nullable=False)
+    customer_fullname = sa.Column(sa.String, nullable=True)
+    product_code = sa.Column(sa.String, nullable=False)
+    product_name = sa.Column(sa.String, nullable=True)
+    total_amount = sa.Column(sa.Float, default=0.0)
+    status = sa.Column(sa.String, default=OrderStatus.initiated.value)
+    created_at = sa.Column(sa.DateTime, default=sa.func.now())

@@ -1,62 +1,45 @@
 import uuid
-from typing import Optional, Any
+from typing import Any, cast
 
-from sqlalchemy import select, insert, update
+from sqlalchemy import select, update, delete, insert
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.db.init_db import database
-from src.models.order import order_table
-
-
-async def post_order(order: dict[str, Any]) -> dict[str, Any]:
-    order_id = str(uuid.uuid4())
-
-    query = insert(order_table).values(id=order_id, **order)
-    await database.execute(query=query)
-
-    created_order: Optional[dict[str, Any]] = await get_order(order_id)
-    if created_order is None:
-        raise Exception("Error on creating order")
-
-    return created_order
+from src.crud.exceptions import DoesNotExist
+from src.models.order import Order
+from src.schemas import order_schema
 
 
-async def get_order(order_id: str) -> Optional[dict[str, Any]]:
-    query = select(order_table).where(order_table.c.id == order_id)
+async def create_order(session: AsyncSession, payload: dict[str, Any]) -> None:
+    query = insert(Order).values(id=str(uuid.uuid4()), **payload)
+    await session.execute(query)
 
-    order = await database.fetch_one(query=query)
+
+async def get_order(session: AsyncSession, order_id: str) -> order_schema.Order:
+    query = select(Order).where(Order.id == order_id)
+    order = (await session.execute(query)).scalar()
+
     if order is None:
-        return None
+        raise DoesNotExist("Item not found")
 
-    return {
-        "id": order["id"],
-        "user_id": order["user_id"],
-        "customer_fullname": order["customer_fullname"],
-        "product_code": order["product_code"],
-        "product_name": order["product_name"],
-        "total_amount": order["total_amount"],
-        "created_at": order["created_at"],
-        "status": order["status"],
-    }
+    return cast(order_schema.Order, order_schema.Order.from_orm(order))
 
 
-async def list_orders(page_no: int = 1, per_page: int = 10) -> list[dict[str, Any]]:
-    query = select(order_table).offset(per_page * (page_no - 1)).limit(per_page)
-    orders = await database.fetch_all(query=query)
-    return [
-        {
-            "id": order["id"],
-            "user_id": order["user_id"],
-            "customer_fullname": order["customer_fullname"],
-            "product_code": order["product_code"],
-            "product_name": order["product_name"],
-            "total_amount": order["total_amount"],
-            "created_at": order["created_at"],
-            "status": order["status"],
-        }
-        for order in orders
-    ]
+async def list_orders(
+    session: AsyncSession, page_no: int = 1, per_page: int = 10
+) -> list[order_schema.Order]:
+    query = select(Order).offset(per_page * (page_no - 1)).limit(per_page)
+    orders = (await session.execute(query)).scalars().all()
+
+    return [order_schema.Order.from_orm(order) for order in orders]
 
 
-async def put_order(order_id: str, payload: dict[str, Any]) -> None:
-    query = update(order_table).where(order_table.c.id == order_id).values(**payload)
-    await database.execute(query=query)
+async def update_order(
+    session: AsyncSession, order_id: str, payload: dict[str, Any]
+) -> None:
+    query = update(Order).where(Order.id == order_id).values(**payload)
+    await session.execute(query)
+
+
+async def delete_order(session: AsyncSession, order_id: str) -> None:
+    query = delete(Order).where(Order.id == order_id)
+    await session.execute(query)

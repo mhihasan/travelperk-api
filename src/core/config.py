@@ -25,7 +25,7 @@ class Settings(BaseSettings):
         f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
     )
 
-    TEST_DB_URL: str = "sqlite:///./sql_app.db"
+    TEST_DB_URL: str = "sqlite+aiosqlite:///./sql_app.db"
     STAGE: str = os.getenv("STAGE", "test")
     LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
     PRODUCT_SERVICE_DOMAIN: str = (

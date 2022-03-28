@@ -1,12 +1,13 @@
 from collections.abc import AsyncGenerator
 
 import pytest
-import sqlalchemy
 from httpx import AsyncClient
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.core.config import settings
-from src.crud.order_crud import post_order
-from src.db.init_db import metadata
+from src.crud.order_crud import create_order
+
+from src.db.base import Base
+from src.db.session import async_engine, async_session
 from src.main import app
 
 
@@ -17,19 +18,21 @@ async def client() -> AsyncGenerator[AsyncClient, None]:
     await c.aclose()
 
 
-@pytest.fixture(autouse=True)
-async def create_test_db() -> AsyncGenerator[None, None]:
-    engine = sqlalchemy.create_engine(settings.TEST_DB_URL)
-    metadata.create_all(engine)
-
-    yield
-
-    engine = sqlalchemy.create_engine(settings.TEST_DB_URL)
-    metadata.drop_all(engine)
+@pytest.fixture
+async def order(db_session: AsyncSession):
+    return await create_order(
+        db_session, {"product_code": "test_product_code", "user_id": "test_user_id"}
+    )
 
 
 @pytest.fixture
-async def order():
-    return await post_order(
-        {"product_code": "test_product_code", "user_id": "test_user_id"}
-    )
+async def db_session() -> AsyncGenerator[AsyncSession, None]:
+    async with async_engine.begin() as connection:
+        await connection.run_sync(Base.metadata.drop_all)
+        await connection.run_sync(Base.metadata.create_all)
+
+        async with async_session(bind=connection) as session:
+            yield session
+
+            await session.flush()
+            await session.rollback()
