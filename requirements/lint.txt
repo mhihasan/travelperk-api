@@ -1,0 +1,7 @@
+mypy
+
+pre-commit
+flake8
+
+black
+click==8.0.4

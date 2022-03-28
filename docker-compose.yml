@@ -1,0 +1,41 @@
+version: '3'
+
+services:
+  order-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: |
+        bash -c 'scripts/wait_for_postgres.sh; uvicorn src.main:app --reload --workers 1 --host 0.0.0.0 --port 8000'
+    volumes:
+      - .:/usr/src/app/
+    ports:
+      - "8000:8000"
+    restart: on-failure
+    depends_on:
+        - database
+    env_file:
+      - .env.dev
+
+  database:
+    image: postgres:13-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=order_service_user
+      - POSTGRES_PASSWORD=order_service_password
+      - POSTGRES_DB=order_service_db
+
+  json-server:
+    image: clue/json-server
+    command: --verbose
+    volumes:
+      - ./json-server/db.json:/data/db.json
+    ports:
+    - "8081:80"
+  
+
+volumes:
+  postgres_data:
