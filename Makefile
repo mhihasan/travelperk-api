@@ -9,7 +9,12 @@ install: requirements/dev.txt
 .PHONY: run_dev
 run_dev:
 	docker-compose up --build --force-recreate  --remove-orphans
-
+    
 .PHONY: migrate
 migrate:
 	docker-compose run order-service alembic upgrade head
+    
+.PHONY: makemigrations
+makemigrations:
+	docker-compose run order-service alembic revision --autogenerate -m "$(message)"
+	

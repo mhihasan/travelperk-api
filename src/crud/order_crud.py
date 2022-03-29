@@ -5,12 +5,14 @@ from sqlalchemy import select, update, delete, insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.crud.exceptions import DoesNotExist
-from src.models.order import Order
+from src.models.order_model import Order
 from src.schemas import order_schema
 
 
-async def create_order(session: AsyncSession, payload: dict[str, Any]) -> None:
-    query = insert(Order).values(id=str(uuid.uuid4()), **payload)
+async def create_order(
+    session: AsyncSession, payload: order_schema.OrderCreate
+) -> None:
+    query = insert(Order).values(id=str(uuid.uuid4()), **payload.dict())
     await session.execute(query)
 
 

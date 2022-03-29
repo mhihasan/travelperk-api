@@ -1,8 +1,2 @@
--r common.txt
-
-pytest-asyncio
-pytest-cov
-pytest-env
-respx
-# for test sqlite db
-aiosqlite
+-r base.txt
+-r tests.txt

@@ -37,6 +37,17 @@ make run_dev
 make test
 ```
 
+### Generating migration file
+```bash
+make makemigrations message="Add order table"
+```
+Note that: We should import all the models to `env.py` file of alembic to autogenerate migration files. 
+
+### Applying generated migration file to DB
+```bash
+make migrate
+```
+
 ## API testing guideline
 ### Using Swagger UI
 Browse [Swagger Doc](http://127.0.0.1:8080/docs)

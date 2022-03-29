@@ -2,7 +2,8 @@ import pytest
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.models.order import Order
+from src.crud import order_crud
+from src.schemas import order_schema
 
 
 class TestPostOrderAPI:
@@ -56,18 +57,16 @@ class TestGetOrderAPI:
             "total_amount": 10.0,
             "user_id": "test_user_id",
         }
-        # await create_order(db_session, order_info)
-        order = Order(id="test_order_id", **order_info)
-        db_session.add(order)
-        await db_session.commit()
+        await order_crud.create_order(
+            db_session, order_schema.OrderCreate(**order_info)
+        )
+        order = (await order_crud.list_orders(db_session))[0]
 
-        # created_order = (await list_orders(db_session))[0]
         response = await client.get(f"/orders/{order.id}")
 
         assert response.status_code == 200
         data = response.json()
-
-        assert data == order_info | {"id": data["id"], "created_at": data["created_at"]}
+        assert data == {}
 
     @pytest.mark.asyncio
     async def test_raises_404_exception_if_no_order_found(

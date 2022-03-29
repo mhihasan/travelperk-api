@@ -1,0 +1,17 @@
+# api
+fastapi==0.75.0
+uvicorn==0.14.0
+
+# database
+sqlalchemy[asyncio]==1.4.32
+psycopg2==2.9.3
+asyncpg==0.25.0
+
+# database migration
+alembic==1.6.5
+
+# http request
+httpx==0.18.2
+
+# utils
+python-dotenv==0.20.0

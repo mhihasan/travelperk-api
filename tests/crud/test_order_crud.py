@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.crud import order_crud
 from src.crud.exceptions import DoesNotExist
-from src.models.order import OrderStatus
+from src.models.order_model import OrderStatus
 from src.schemas import order_schema
 
 
@@ -13,7 +13,9 @@ class TestPostOrder:
     @pytest.mark.asyncio
     async def test_post_order(self, db_session: AsyncSession):
         order_info = {"user_id": "test_user_id", "product_code": "test_product_code"}
-        await order_crud.create_order(db_session, order_info)
+        await order_crud.create_order(
+            db_session, order_schema.OrderCreate(**order_info)
+        )
 
         order = (await order_crud.list_orders(db_session))[0]
         assert order == order_schema.Order(
@@ -42,14 +44,18 @@ class TestPostOrder:
         self, invalid_info: dict[str, Any], db_session: AsyncSession
     ):
         with pytest.raises(Exception):
-            await order_crud.create_order(db_session, invalid_info)
+            await order_crud.create_order(
+                db_session, order_schema.OrderCreate(**invalid_info)
+            )
 
 
 class TestGetOrder:
     @pytest.mark.asyncio
     async def test_gets_order(self, db_session: AsyncSession):
         order_info = {"user_id": "test_user_id", "product_code": "test_product_code"}
-        await order_crud.create_order(db_session, order_info)
+        await order_crud.create_order(
+            db_session, order_schema.OrderCreate(**order_info)
+        )
         created_order = (await order_crud.list_orders(db_session))[0]
 
         order = await order_crud.get_order(db_session, created_order.id)
@@ -83,7 +89,9 @@ class TestListOrders:
                 "user_id": f"test_user_id_{i}",
                 "product_code": "test_product_code",
             }
-            await order_crud.create_order(db_session, order_info)
+            await order_crud.create_order(
+                db_session, order_schema.OrderCreate(**order_info)
+            )
 
         orders = await order_crud.list_orders(db_session)
         assert len(orders) == 10
@@ -102,7 +110,9 @@ class TestUpdateOrder:
     @pytest.mark.asyncio
     async def test_updates_order(self, db_session: AsyncSession):
         order_info = {"user_id": "test_user_id", "product_code": "test_product_code"}
-        await order_crud.create_order(db_session, order_info)
+        await order_crud.create_order(
+            db_session, order_schema.OrderCreate(**order_info)
+        )
 
         created_order = (await order_crud.list_orders(db_session))[0]
 
