@@ -13,7 +13,9 @@ class OrderBase(BaseModel):
 
 
 class OrderCreate(OrderBase):
-    pass
+    customer_fullname: Optional[str]
+    product_name: Optional[str]
+    total_amount: Optional[float]
 
 
 class Order(OrderBase):

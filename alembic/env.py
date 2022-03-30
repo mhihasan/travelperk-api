@@ -42,7 +42,7 @@ def run_migrations_offline():
 
     """
     context.configure(
-        url=settings.POSTGRESQL_URL,
+        url=settings.db_url,
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
@@ -60,7 +60,7 @@ def run_migrations_online():
 
     """
     configuration = config.get_section(config.config_ini_section)
-    configuration["sqlalchemy.url"] = settings.POSTGRESQL_URL
+    configuration["sqlalchemy.url"] = settings.db_url
 
     connectable = engine_from_config(
         configuration,

@@ -4,24 +4,24 @@ import httpx
 import pytest
 
 from src.core.config import settings
-from src.services.user_service import invoke_user_api
+from src.services.user_service import fetch_user
 
 
-class TestInvokeUserApi:
+class TestFetchUser:
     @pytest.mark.asyncio
-    async def test_gets_user_details(self, respx_mock: Mock) -> None:
-        user = {"firstName": "John", "id": "test_user_id", "lastName": "Doe"}
-        respx_mock.get(f'{settings.USER_SERVICE_DOMAIN}/users/{user["id"]}').mock(
+    async def test_should_returns_user_details(self, respx_mock: Mock) -> None:
+        user = {"first_name": "John", "id": "test_user_id", "last_name": "Doe"}
+        respx_mock.get(f'{settings.user_service_domain}/users/{user["id"]}').mock(
             return_value=httpx.Response(200, json=user)
         )
-        response = await invoke_user_api(user["id"])
+        response = await fetch_user(user["id"])
         assert response == user
 
     @pytest.mark.asyncio
     async def test_reties_if_user_api_returns_500(self, respx_mock: Mock) -> None:
-        user = {"firstName": "John", "id": "test_user_id", "lastName": "Doe"}
-        respx_mock.get(f'{settings.USER_SERVICE_DOMAIN}/users/{user["id"]}').mock(
+        user = {"first_name": "John", "id": "test_user_id", "last_name": "Doe"}
+        respx_mock.get(f'{settings.user_service_domain}/users/{user["id"]}').mock(
             side_effect=[httpx.Response(500), httpx.Response(200, json=user)]
         )
-        response = await invoke_user_api(user["id"])
+        response = await fetch_user(user["id"])
         assert response == user

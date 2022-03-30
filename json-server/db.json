@@ -1,9 +1,9 @@
 {
   "products": [
-    {"id":  1, "code":  "product-code-1", "name":  "A-Shirt", "price":  10},
-    {"id":  2, "code":  "product-code-2", "name":  "B-Shirt", "price":  20},
-    {"id":  3, "code":  "product-code-3", "name":  "C-Shirt", "price":  30},
-    {"id":  4, "code":  "product-code-4", "name":  "D-Shirt", "price":  40}
+    {"id":  "product-id-1", "name":  "A-Shirt", "price":  10},
+    {"id":  "product-id-2", "name":  "B-Shirt", "price":  20},
+    {"id":  "product-id-3", "name":  "C-Shirt", "price":  30},
+    {"id":  "product-id-4", "name":  "D-Shirt", "price":  40}
   ],
   "users": [
     {"id": "user-id-1", "first_name":  "Alex", "last_name":  "Bri"},

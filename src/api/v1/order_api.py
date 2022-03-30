@@ -5,15 +5,16 @@ from src.api.dependencies.db import get_session
 from src.crud import order_crud
 from src.crud.exceptions import DoesNotExist
 from src.schemas import order_schema
+from src.services import order_service
 
 router = APIRouter()
 
 
 @router.post("/orders", status_code=201, response_model=order_schema.Order)
 async def post_order(
-    payload: order_schema.OrderCreate, session: AsyncSession = Depends(get_session)
+    payload: order_schema.OrderBase, session: AsyncSession = Depends(get_session)
 ):
-    await order_crud.create_order(session, payload)
+    await order_service.create_order(session, payload)
 
 
 @router.get("/orders/{order_id}", response_model=order_schema.Order)

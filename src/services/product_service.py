@@ -1,19 +1,16 @@
-from typing import Any, Optional, cast
-
 import httpx
 
 from src.core.config import settings
-from src.utils.logging import logger
-from src.utils.types import TProduct
+from src.schemas import product_schema
 
 
-async def invoke_product_api(product_code: str, **params: Any) -> Optional[TProduct]:
+async def fetch_product(product_id: str) -> product_schema.Product:
     async with httpx.AsyncClient() as client:
         response = await client.get(
-            f"{settings.PRODUCT_SERVICE_DOMAIN}/products/{product_code}", **params
+            f"{settings.product_service_domain}/products/{product_id}"
         )
 
-    if response.status_code == 500:
-        logger.error(f"Product Api returns 500: {product_code}")
-        return None
-    return cast(TProduct, response.json())
+    if response.status_code != 200:
+        raise Exception(f"Error on fetching product with: {str(response)}")
+
+    return product_schema.Product(**response.json())
