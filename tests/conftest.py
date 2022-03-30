@@ -2,12 +2,14 @@ from collections.abc import AsyncGenerator
 
 import pytest
 from httpx import AsyncClient
+from sqlalchemy import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.crud.order_crud import create_order
+from src.models.order_model import Order
+from src.schemas import order_schema
 
-from src.db.base import Base
-from src.db.session import async_engine, async_session
+from src.core.db.base import Base
+from src.core.db.session import async_engine, async_session
 from src.main import app
 
 
@@ -20,9 +22,17 @@ async def client() -> AsyncGenerator[AsyncClient, None]:
 
 @pytest.fixture
 async def order(db_session: AsyncSession):
-    return await create_order(
-        db_session, {"product_code": "test_product_code", "user_id": "test_user_id"}
+    query = insert(Order).values(
+        id="test-order-id",
+        **order_schema.OrderCreate(
+            user_id="user-id-1",
+            customer_fullname="John Doe",
+            product_code="product-id-1",
+            product_name="nice product",
+            total_amount=10.99,
+        ).dict(),
     )
+    await db_session.execute(query)
 
 
 @pytest.fixture

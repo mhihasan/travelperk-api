@@ -6,7 +6,7 @@ from sqlalchemy import pool
 from alembic import context
 
 from src.core.config import settings
-from src.db.base import Base
+from src.core.db.base import Base
 from src.models.order_model import Order  # noqa
 
 # this is the Alembic Config object, which provides

@@ -2,7 +2,7 @@ import enum
 
 import sqlalchemy as sa
 
-from src.db.base import Base
+from src.core.db.base import Base
 
 
 class OrderStatus(enum.Enum):
