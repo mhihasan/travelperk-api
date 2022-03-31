@@ -1,16 +1,16 @@
 import os
 from functools import cache
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 from pydantic import BaseSettings
-from dotenv import load_dotenv
 
 if TYPE_CHECKING:
     PostgresDsn = str
 else:
     from pydantic import PostgresDsn
 
-load_dotenv(".env")
+ROOT_DIR = Path(__file__).parent.parent.parent
 
 
 class Settings(BaseSettings):
@@ -42,7 +42,7 @@ class Settings(BaseSettings):
         """Use this while creating async engine, POSTGRESQL_URL is for alembic
         migration"""
         return (
-            "sqlite+aiosqlite:///./sql_app.db"
+            f"sqlite+aiosqlite:///{ROOT_DIR}/tests/sql_app.db"
             if self.STAGE == "test"
             else self.db_url.replace("postgresql://", f"postgresql+{self.DB_DRIVER}://")
         )
@@ -62,3 +62,7 @@ def get_settings():
 
 
 settings = get_settings()
+
+
+if __name__ == "__main__":
+    print("A", ROOT_DIR)

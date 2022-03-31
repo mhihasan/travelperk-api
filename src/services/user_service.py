@@ -1,17 +1,13 @@
-import httpx
+import aiohttp
 
 from src.core.config import settings
 from src.schemas import user_schema
+from src.utils import requests
 
 
-async def fetch_user(user_id: str, retry: int = 3) -> user_schema.User:
-    if retry < 0:
-        raise Exception("Max retries are exceeded")
+async def fetch_user(session: aiohttp.ClientSession, user_id: str) -> user_schema.User:
+    response = await requests.fetch(
+        session, f"{settings.user_service_domain}/users/{user_id}"
+    )
 
-    async with httpx.AsyncClient() as client:
-        response = await client.get(f"{settings.user_service_domain}/users/{user_id}")
-
-    if response.status_code != 200:
-        return await fetch_user(user_id, retry=retry + 1)
-
-    return user_schema.User(**response.json())
+    return user_schema.User(**response)

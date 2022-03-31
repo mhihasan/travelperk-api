@@ -1,21 +1,32 @@
+import httpx
 import pytest
-from httpx import AsyncClient
-from sqlalchemy.ext.asyncio import AsyncSession
+from aioresponses import aioresponses
 
-from src.crud import order_crud
-from src.schemas import order_schema
+from src.core.config import settings
 
 
 class TestPostOrderAPI:
     @pytest.mark.asyncio
     async def test_creates_order_successfully(
-        self,
-        client: AsyncClient,
+        self, client: httpx.AsyncClient, mock_aiohttp: aioresponses
     ) -> None:
-        payload = {"user_id": "test_user_id", "product_code": "test_product_code"}
+        product = {"id": "test_product_id", "name": "test_name", "price": 10.99}
+        mock_aiohttp.get(
+            f'{settings.product_service_domain}/products/{product["id"]}',
+            status=200,
+            payload=product,
+        )
+
+        user = {"first_name": "John", "id": "test_user_id", "last_name": "Doe"}
+        mock_aiohttp.get(
+            f'{settings.user_service_domain}/users/{user["id"]}',
+            status=200,
+            payload=user,
+        )
+
         response = await client.post(
             "/orders",
-            json=payload,
+            json={"user_id": "test_user_id", "product_code": "test_product_id"},
         )
 
         assert response.status_code == 201
@@ -32,9 +43,9 @@ class TestPostOrderAPI:
     @pytest.mark.asyncio
     async def test_raises_exception_for_invalid_input_payload(
         self,
+        client: httpx.AsyncClient,
         invalid_payload,
         expected_status,
-        client: AsyncClient,
     ) -> None:
         response = await client.post(
             "/orders",
@@ -46,35 +57,12 @@ class TestPostOrderAPI:
 
 class TestGetOrderAPI:
     @pytest.mark.asyncio
-    async def test_gets_order(
-        self, client: AsyncClient, db_session: AsyncSession
-    ) -> None:
-        order_info = {
-            "customer_fullname": "John Doe",
-            "product_code": "test_product_code",
-            "product_name": "test_product_name",
-            "status": "initiated",
-            "total_amount": 10.0,
-            "user_id": "test_user_id",
-        }
-        await order_crud.create_order(
-            db_session, order_schema.OrderCreate(**order_info)
-        )
-        order = (await order_crud.list_orders(db_session))[0]
-
-        response = await client.get(f"/orders/{order.id}")
-
-        assert response.status_code == 200
-        data = response.json()
-        assert data == {}
-
-    @pytest.mark.asyncio
     async def test_raises_404_exception_if_no_order_found(
-        self,
-        client: AsyncClient,
+        self, client: httpx.AsyncClient
     ) -> None:
-        response = await client.get("/orders/a-random-string")
+        response = await client.get("/orders/a-random-order")
 
         assert response.status_code == 404
+
         data = response.json()
         assert data["detail"] == "Order not found"

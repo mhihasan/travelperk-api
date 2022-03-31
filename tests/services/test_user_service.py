@@ -1,7 +1,6 @@
-from unittest.mock import Mock
-
-import httpx
+import aiohttp
 import pytest
+from aioresponses import aioresponses
 
 from src.core.config import settings
 from src.services.user_service import fetch_user
@@ -9,19 +8,27 @@ from src.services.user_service import fetch_user
 
 class TestFetchUser:
     @pytest.mark.asyncio
-    async def test_should_returns_user_details(self, respx_mock: Mock) -> None:
+    async def test_should_returns_user_details(
+        self, mock_aiohttp: aioresponses, aiohttp_session: aiohttp.ClientSession
+    ) -> None:
         user = {"first_name": "John", "id": "test_user_id", "last_name": "Doe"}
-        respx_mock.get(f'{settings.user_service_domain}/users/{user["id"]}').mock(
-            return_value=httpx.Response(200, json=user)
+        mock_aiohttp.get(
+            f'{settings.user_service_domain}/users/{user["id"]}',
+            status=200,
+            payload=user,
         )
-        response = await fetch_user(user["id"])
+
+        response = await fetch_user(aiohttp_session, user["id"])
         assert response == user
 
     @pytest.mark.asyncio
-    async def test_reties_if_user_api_returns_500(self, respx_mock: Mock) -> None:
+    async def test_reties_if_user_api_returns_500(
+        self, mock_aiohttp: aioresponses, aiohttp_session: aiohttp.ClientSession
+    ) -> None:
         user = {"first_name": "John", "id": "test_user_id", "last_name": "Doe"}
-        respx_mock.get(f'{settings.user_service_domain}/users/{user["id"]}').mock(
-            side_effect=[httpx.Response(500), httpx.Response(200, json=user)]
+        mock_aiohttp.get(
+            f'{settings.user_service_domain}/users/{user["id"]}', status=500
         )
-        response = await fetch_user(user["id"])
-        assert response == user
+
+        with pytest.raises(Exception):
+            await fetch_user(aiohttp_session, user["id"])

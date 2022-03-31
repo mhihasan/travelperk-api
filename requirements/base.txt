@@ -11,7 +11,7 @@ asyncpg==0.25.0
 alembic==1.6.5
 
 # http request
-httpx==0.18.2
+aiohttp==3.8.1
 
 # utils
 python-dotenv==0.20.0

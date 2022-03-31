@@ -2,9 +2,9 @@ from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.db.session_creator import get_session
-from src.utils.exceptions import DoesNotExist
 from src.schemas import order_schema
 from src.services import order_service
+from src.utils.exceptions import DoesNotExist
 
 router = APIRouter()
 
